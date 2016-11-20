@@ -262,7 +262,7 @@ public class WekaFeed extends AbstractClassifier{
     }
 
 //==============================================================================
-
+	// melakukan penghitungan eror untuk setiap node pada layer output
 	public void hitungeroroutput(int id, double target){
 		double keluaran;
 		double hitungeror;
@@ -275,7 +275,8 @@ public class WekaFeed extends AbstractClassifier{
     }
 
 //==============================================================================
-
+	// melakukan penghitungan sigma seluruh eror dari node yang dituju oleh node id
+	// dikalikan dengan weight dari node id menuju node tersebut
 	public double sigmaerorkaliweight(int id){
 		
 		int[] index = searchNode(id);
@@ -295,6 +296,7 @@ public class WekaFeed extends AbstractClassifier{
 	}
 
 //==============================================================================
+	// melakukan penghitungan eror untuk setiap node pada setiap layer hidden yang ada
 	public void hitungerorhidden(int id){
 		double keluaran;
 		double hitungeror;
@@ -307,7 +309,9 @@ public class WekaFeed extends AbstractClassifier{
     }
 
 //==============================================================================
-
+	
+	// melakukan pengubahan bobot yang berasal dari idnodeasal menuju ke idnodetujuan
+	// learning rate di set di constructor dengan nilai satu
 	public void ubahbobot(int idnodeasal, int idnodetujuan){
 		int[] indeksasal = searchNode(idnodeasal);
 		int[] indekstujuan = searchNode(idnodetujuan);
@@ -337,9 +341,17 @@ public class WekaFeed extends AbstractClassifier{
         }
   }
 //==============================================================================
-  public void backpropagation(double[] target){    
-	int banyaknode = Node.lastID;
-	int lastnode=banyaknode-1;
+
+// Melakukan back propagation. Double[] target diassign dengan target seharusnya dikeluaran
+// target[0] sebagai target pada node 0 output layer
+// target[1] sebagai target pada node 1 output layer
+// target[2] sebagai target pada node 2 output layer
+// ...
+  public void backpropagation(double[] target){  
+	  
+	    
+	// Set eror untuk setiap node yang ada pada layer output
+	    
 	int xx=nkelas-1;
 	int banyaklayer=neuralNode.length;
         int qq = banyaklayer-1;
@@ -352,6 +364,8 @@ public class WekaFeed extends AbstractClassifier{
         }
         
         
+	// Set eror dan juga bobot baru untuk setiap node yang ada pada masing-masing layer hidden
+	
 	
 	xx = banyaklayer-2;
 	
@@ -374,6 +388,7 @@ public class WekaFeed extends AbstractClassifier{
 		
 	}
 	
+	// Set bobot baru yang berasal dari layer input
 		yy=neuralNode[0].length;
 		int zz=neuralNode[1].length;
 		
@@ -410,17 +425,28 @@ public class WekaFeed extends AbstractClassifier{
     //weka.assignPreEdgeWeight(5, new double[]{10,11,12,13});
     //weka.assignEdge(10, 15, 99);
     System.out.println("Sebelum Dilakukan Feed Forward =>" );
+    System.out.println("Value dan eror masing-masing node");
     weka.printAllNode();
+    System.out.println();
+    System.out.println("Bobot dari suatu node menuju note dengan ID");
     weka.printAllEdge();
     weka.feedforward(1);
+    System.out.println();
     System.out.println("Setelah Dilakukan Feed Forward =>" );
+    System.out.println();
+    System.out.println("Value dan eror masing-masing node");
     weka.printAllNode();
-    weka.backpropagation(new double[]{1});
+    System.out.println();
+    weka.backpropagation(new double[]{1}); // Hanya memiliki satu node di layer output
     System.out.println("Setelah dilakukan Back Propagation =>" );
+    System.out.println();
+    System.out.println("Value dan eror masing-masing node");
     weka.printAllNode();
+    System.out.println();
+    System.out.println("Bobot dari suatu node menuju note dengan ID");
     weka.printAllEdge();
-    //weka.backpropagation(new double[] {1,0});
     
+   
     // convert nominal to numeric for class
     
 
