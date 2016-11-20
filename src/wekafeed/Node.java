@@ -20,6 +20,7 @@ public class Node {
   
   public int id;
   public double value;
+  public double eror;
   public Map<Integer, Double> edges = new HashMap<Integer, Double>();
   
   Node(){
@@ -27,5 +28,5 @@ public class Node {
     lastID++;
     value = rand.nextDouble();
   }
-  
+    
 }

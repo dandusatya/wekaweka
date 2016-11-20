@@ -11,7 +11,8 @@ public class WekaFeed extends AbstractClassifier{
   public Node[][] neuralNode;
   public static long seed = System.currentTimeMillis();
   public static Random rand = new Random(seed);
-  
+  public static int learningrate=1;
+  public static int nkelas; // atribut ini ada untuk tes saja
   
 //==============================================================================
   WekaFeed(int inputCount, int hiddenLayerCount, int hiddenCount, 
@@ -43,6 +44,8 @@ public class WekaFeed extends AbstractClassifier{
     layerCount++;
     
     connectNodes();
+    
+    nkelas=outputCount;
   }
 //==============================================================================
   public void connectNodes(){
@@ -91,6 +94,7 @@ public class WekaFeed extends AbstractClassifier{
       for(int j=0; j<layerNodes; j++)
       {
         System.out.println(neuralNode[i][j].id+": "+neuralNode[i][j].value);
+        System.out.println("Eror: "+neuralNode[i][j].eror);
       }
     }
   }
@@ -258,13 +262,72 @@ public class WekaFeed extends AbstractClassifier{
     }
 
 //==============================================================================
+
+	public void hitungeroroutput(int id, double target){
+		double keluaran;
+		double hitungeror;
+		int[] indeks = searchNode(id);
+		
+		keluaran = neuralNode[indeks[0]][indeks[1]].value;
+		
+		hitungeror=keluaran*(1-keluaran)*(target-keluaran);
+		neuralNode[indeks[0]][indeks[1]].eror=hitungeror;  
+    }
+
+//==============================================================================
+
+	public double sigmaerorkaliweight(int id){
+		
+		int[] index = searchNode(id);
+		int[] index2;
+		int i = index[0];
+		int j = index[1];
+		double sum = 0;
+		double weight = 0;
+		
+		  for(int key: neuralNode[i][j].edges.keySet()){
+			  weight = neuralNode[i][j].edges.get(key);
+			  index2 =searchNode(key);
+			  sum += neuralNode[index2[0]][index2[1]].eror * weight;
+		  }
+		  
+		return sum;
+	}
+
+//==============================================================================
+	public void hitungerorhidden(int id){
+		double keluaran;
+		double hitungeror;
+		int[] indeks = searchNode(id);
+		
+		keluaran = neuralNode[indeks[0]][indeks[1]].value;
+		
+		hitungeror=keluaran*(1-keluaran)*(sigmaerorkaliweight(id));
+		neuralNode[indeks[0]][indeks[1]].eror=hitungeror;  
+    }
+
+//==============================================================================
+
+	public void ubahbobot(int idnodeasal, int idnodetujuan){
+		int[] indeksasal = searchNode(idnodeasal);
+		int[] indekstujuan = searchNode(idnodetujuan);
+		
+		double bobotawal = neuralNode[indeksasal[0]][indeksasal[1]].edges.get(idnodetujuan);
+		double bobotbaru = bobotawal + neuralNode[indekstujuan[0]][indekstujuan[1]].eror*neuralNode[indeksasal[0]][indeksasal[1]].value*learningrate;
+		
+                
+                
+		neuralNode[indeksasal[0]][indeksasal[1]].edges.put(idnodetujuan,bobotbaru);
+	}
+
+//==============================================================================
   @Override
   public void buildClassifier(Instances i) throws Exception {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 //==============================================================================
 
-  // Melakukan feed forward yang dimulai dari "idmulaiassign" =>  node input tidak dapat dicari value barunya
+// Melakukan feed forward yang dimulai dari "idmulaiassign" =>  node input tidak dapat dicari value barunya
   public void feedforward(int idmulaiassign){
 	int banyaknode = Node.lastID;
         
@@ -274,39 +337,96 @@ public class WekaFeed extends AbstractClassifier{
         }
   }
 //==============================================================================
+  public void backpropagation(double[] target){    
+	int banyaknode = Node.lastID;
+	int lastnode=banyaknode-1;
+	int xx=nkelas-1;
+	int banyaklayer=neuralNode.length;
+        int qq = banyaklayer-1;
+        int yy=neuralNode[qq].length;
+        int aa = yy-1;
+		
+        for (int jj = aa ; jj>=0 ; jj--){
+                hitungeroroutput(neuralNode[qq][jj].id,target[xx]);
+                xx--;
+        }
+        
+        
+	
+	xx = banyaklayer-2;
+	
+	for(int ii = xx ; ii> 0 ; ii--){
+		yy=neuralNode[ii].length;
+		int zz=neuralNode[ii+1].length;
+		
+		aa = yy-1;
+		int bb = zz-1;
+		
+		for (int jj = aa ; jj>=0 ; jj--){
+			for ( int kk = bb ; kk >=0 ; kk--) {
+				ubahbobot(neuralNode[ii][jj].id,neuralNode[ii+1][kk].id);
+			}
+		}
+		
+		for (int jj = aa ; jj>=0 ; jj--){
+			hitungerorhidden(neuralNode[ii][jj].id);
+		}
+		
+	}
+	
+		yy=neuralNode[0].length;
+		int zz=neuralNode[1].length;
+		
+		aa = yy-1;
+		int bb = zz-1;
+		
+		for (int jj = aa ; jj>=0 ; jj--){
+				for ( int kk = bb ; kk >=0 ; kk--) {
+					ubahbobot(neuralNode[0][jj].id,neuralNode[1][kk].id);
+				}
+		}
+		
+  }  
+  
+//==============================================================================
   public static void main(String[] args) {
 
     
-    loaddata load = new loaddata("C:\\Program Files\\Weka-3-8\\data\\iris.arff");
-    System.out.println("Banyak atribut adalah " + loaddata.banyakatribut);
-    System.out.println("Banyak kelas adalah " + loaddata.banyakkelas);
+    //loaddata load = new loaddata("C:\\Program Files\\Weka-3-8\\data\\iris.arff");
+    //System.out.println("Banyak atribut adalah " + loaddata.banyakatribut);
+    //System.out.println("Banyak kelas adalah " + loaddata.banyakkelas);
    
     //inputCount=loaddata.banyakatribut;
     //outputCount=loaddata.banyakkelas;
 	
 	
-    int inputCount=2;
-    int hiddenCount=2;
-    int outputCount=2;
+    int inputCount=1;
+    int hiddenCount=1;
+    int outputCount=1;
     
-    WekaFeed weka = new WekaFeed(inputCount, 4, hiddenCount, outputCount);
-    weka.assignInput(new double[]{1,2,3,4});
-    weka.assignPostEdgeWeight(0, new double[]{4,5,6,7});
-    weka.assignPreEdgeWeight(5, new double[]{10,11,12,13});
-    weka.assignEdge(10, 15, 99);
+    WekaFeed weka = new WekaFeed(inputCount, 1, hiddenCount, outputCount);
+    weka.assignInput(new double[]{1});
+    //weka.assignPostEdgeWeight(0, new double[]{4,5,6,7});
+    //weka.assignPreEdgeWeight(5, new double[]{10,11,12,13});
+    //weka.assignEdge(10, 15, 99);
     System.out.println("Sebelum Dilakukan Feed Forward =>" );
     weka.printAllNode();
-    weka.feedforward(2);
+    weka.printAllEdge();
+    weka.feedforward(1);
     System.out.println("Setelah Dilakukan Feed Forward =>" );
     weka.printAllNode();
-
+    weka.backpropagation(new double[]{1});
+    System.out.println("Setelah dilakukan Back Propagation =>" );
+    weka.printAllNode();
+    weka.printAllEdge();
+    //weka.backpropagation(new double[] {1,0});
     
     // convert nominal to numeric for class
     
 
     
     // dataset preprocessing
-    try {
+    /*try {
     
         Normalization nm = new Normalization(load.train_data);
         Instances normalizedDataset = nm.normalize();
@@ -320,7 +440,7 @@ public class WekaFeed extends AbstractClassifier{
         e.printStackTrace();
        
     }
-    
+    */
   }
 
 }
