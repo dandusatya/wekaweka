@@ -4,6 +4,7 @@ package wekafeed;
 import java.util.Random;
 import weka.classifiers.AbstractClassifier;
 import weka.core.Instances;
+import weka.core.Instance;
 import java.lang.*;
 public class WekaFeed extends AbstractClassifier{
   
@@ -325,14 +326,25 @@ public class WekaFeed extends AbstractClassifier{
 	}
 
 //==============================================================================
-  @Override
-  public void buildClassifier(Instances i) throws Exception {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  public int getFirstnonInput(){
+    return neuralNode[0].length;
   }
 //==============================================================================
 
 // Melakukan feed forward yang dimulai dari "idmulaiassign" =>  node input tidak dapat dicari value barunya
   public void feedforward(int idmulaiassign){
+	int banyaknode = Node.lastID;
+        
+        for(int i=idmulaiassign; i< banyaknode ; i++)
+        {
+            setvaluebaru(i);
+        }
+  }
+//==============================================================================
+
+// Melakukan feed forward yang dimulai dari "idmulaiassign" =>  node input tidak dapat dicari value barunya
+  public void feedforward(){
+  int idmulaiassign = getFirstnonInput();
 	int banyaknode = Node.lastID;
         
         for(int i=idmulaiassign; i< banyaknode ; i++)
@@ -402,71 +414,139 @@ public class WekaFeed extends AbstractClassifier{
 		}
 		
   }  
-  
-//==============================================================================
-  public static void main(String[] args) {
 
+//==============================================================================
+  @Override
+  public void buildClassifier(Instances data) throws Exception {
+    int index = 0;
+    int banyakAtribut = data.numAttributes()-1;
+    int banyakKelas = data.numClasses();
+    int banyakData = data.numInstances();
     
-    //loaddata load = new loaddata("C:\\Program Files\\Weka-3-8\\data\\iris.arff");
-    //System.out.println("Banyak atribut adalah " + loaddata.banyakatribut);
-    //System.out.println("Banyak kelas adalah " + loaddata.banyakkelas);
-   
-    //inputCount=loaddata.banyakatribut;
-    //outputCount=loaddata.banyakkelas;
-	
-	
+    
+    
+    for(index=0; index<banyakData; index++)
+    {
+      //pilih instance
+      Instance curr = data.get(index);
+      
+      
+      //create initial value
+      //System.out.println("input===============");
+      double[] input = new double[banyakAtribut];
+      for(int i=0; i<banyakAtribut; i++){
+        input[i] = curr.value(i);
+        //System.out.println(input[i]);
+      }
+
+      //create target
+      //System.out.println("target==============");
+      double[] target = new double[banyakKelas];
+      for(int i=0; i<banyakKelas; i++){
+        if(curr.toString(curr.classIndex()).equals(data.classAttribute().value(i)))
+        {
+          input[i] = 1;
+        }
+        else
+        {
+          input[i] = 0;
+        }
+        //System.out.println(input[i]);
+      }
+
+      //jalankan
+      assignInput(input);
+      feedforward();
+      backpropagation(target);
+    }
+  }  
+//==============================================================================
+  
+
+  public static void main(String[] args) {
     int inputCount=1;
     int hiddenCount=1;
     int outputCount=1;
     
-    WekaFeed weka = new WekaFeed(inputCount, 1, hiddenCount, outputCount);
-    weka.assignInput(new double[]{1});
-    //weka.assignPostEdgeWeight(0, new double[]{4,5,6,7});
-    //weka.assignPreEdgeWeight(5, new double[]{10,11,12,13});
-    //weka.assignEdge(10, 15, 99);
-    System.out.println("Sebelum Dilakukan Feed Forward =>" );
-    System.out.println("Value dan eror masing-masing node");
-    weka.printAllNode();
-    System.out.println();
-    System.out.println("Bobot dari suatu node menuju note dengan ID");
-    weka.printAllEdge();
-    weka.feedforward(1);
-    System.out.println();
-    System.out.println("Setelah Dilakukan Feed Forward =>" );
-    System.out.println();
-    System.out.println("Value dan eror masing-masing node");
-    weka.printAllNode();
-    System.out.println();
-    weka.backpropagation(new double[]{1}); // Hanya memiliki satu node di layer output
-    System.out.println("Setelah dilakukan Back Propagation =>" );
-    System.out.println();
-    System.out.println("Value dan eror masing-masing node");
-    weka.printAllNode();
-    System.out.println();
-    System.out.println("Bobot dari suatu node menuju note dengan ID");
-    weka.printAllEdge();
-    
+    loaddata load = new loaddata("C:\\Program Files\\Weka-3-8\\data\\iris.arff");
+    System.out.println("Banyak atribut adalah " + loaddata.banyakatribut);
+    System.out.println("Banyak kelas adalah " + loaddata.banyakkelas);
    
-    // convert nominal to numeric for class
+    inputCount=loaddata.banyakatribut;
+    outputCount=loaddata.banyakkelas;
     
-
+    WekaFeed weka = new WekaFeed(inputCount, 1, outputCount, outputCount);
     
-    // dataset preprocessing
-    /*try {
+    //sebelum FFNN
+    System.out.println("SEBELUM FFNN=====================");
+    weka.printAllEdge();
+    System.out.println("NODE############################");
+    weka.printAllNode();
+    System.out.println("===============================");
+    System.out.println("");
     
-        Normalization nm = new Normalization(load.train_data);
-        Instances normalizedDataset = nm.normalize();
-    
-        System.out.println();
-       // System.out.println("Normalized data train");
-       // System.out.println(normalizedDataset);
-        
-    } catch (Exception e) {
-        
-        e.printStackTrace();
-       
+    try{
+      weka.buildClassifier(load.train_data);
     }
-    */
+    catch(Exception e){
+      e.printStackTrace();
+    }
+    
+    //setelah FFNN
+    System.out.println("SETELAH FFNN=====================");
+    weka.printAllEdge();
+    System.out.println("NODE############################");
+    weka.printAllNode();
+    System.out.println("===============================");
+    System.out.println("");
+    
+//    weka.assignInput(new double[]{1,2,3,4});
+//    //weka.assignPostEdgeWeight(0, new double[]{4,5,6,7});
+//    //weka.assignPreEdgeWeight(5, new double[]{10,11,12,13});
+//    //weka.assignEdge(10, 15, 99);
+//    System.out.println("Sebelum Dilakukan Feed Forward =>" );
+//    System.out.println("Value dan eror masing-masing node");
+//    weka.printAllNode();
+//    System.out.println();
+//    System.out.println("Bobot dari suatu node menuju note dengan ID");
+//    weka.printAllEdge();
+//    weka.feedforward();
+//    System.out.println();
+//    System.out.println("Setelah Dilakukan Feed Forward =>" );
+//    System.out.println();
+//    System.out.println("Value dan eror masing-masing node");
+//    weka.printAllNode();
+//    System.out.println();
+//    weka.backpropagation(new double[]{1,0,0}); // Hanya memiliki satu node di layer output
+//    System.out.println("Setelah dilakukan Back Propagation =>" );
+//    System.out.println();
+//    System.out.println("Value dan eror masing-masing node");
+//    weka.printAllNode();
+//    System.out.println();
+//    System.out.println("Bobot dari suatu node menuju note dengan ID");
+//    weka.printAllEdge();
+//    
+//   
+//    // convert nominal to numeric for class
+//    
+//
+//    
+//    // dataset preprocessing
+//    /*try {
+//    
+//        Normalization nm = new Normalization(load.train_data);
+//        Instances normalizedDataset = nm.normalize();
+//    
+//        System.out.println();
+//       // System.out.println("Normalized data train");
+//       // System.out.println(normalizedDataset);
+//        
+//    } catch (Exception e) {
+//        
+//        e.printStackTrace();
+//       
+//    }
+//    */
   }
 
 }

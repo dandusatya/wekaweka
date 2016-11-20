@@ -14,7 +14,7 @@ public class loaddata {
     public static int banyakatribut;
     public static int banyakkelas;
     
-    public loaddata(String _filename){  
+    public loaddata(String _filename) {  
         fileName=_filename;
         
         try {
