@@ -326,6 +326,17 @@ public class WekaFeed extends AbstractClassifier{
 	}
 
 //==============================================================================
+    public double[] neuralNodeOutput(){  
+    Node[] outputNode = neuralNode[neuralNode.length-1];
+    double[] output = new double[outputNode.length];
+    
+    for(int i=0; i<outputNode.length; i++){
+      output[i] = outputNode[i].value;
+    }
+    
+    return output;
+  }
+//==============================================================================
   public int getFirstnonInput(){
     return neuralNode[0].length;
   }
@@ -377,8 +388,6 @@ public class WekaFeed extends AbstractClassifier{
         
         
 	// Set eror dan juga bobot baru untuk setiap node yang ada pada masing-masing layer hidden
-	
-	
 	xx = banyaklayer-2;
 	
 	for(int ii = xx ; ii> 0 ; ii--){
@@ -441,24 +450,26 @@ public class WekaFeed extends AbstractClassifier{
 
       //create target
       //System.out.println("target==============");
-      double[] target = new double[banyakKelas];
+      System.out.println(curr.classValue());
+      double[] target = new double[banyakKelas]; //anggap inisialisasi 0
+      int indexKelas = (int) curr.classValue();
+      target[indexKelas] = 1;
       for(int i=0; i<banyakKelas; i++){
-        if(curr.toString(curr.classIndex()).equals(data.classAttribute().value(i)))
-        {
-          input[i] = 1;
-        }
-        else
-        {
-          input[i] = 0;
-        }
-        //System.out.println(input[i]);
+        //System.out.println("kelas"+i+": "+target[i]);
       }
+      
 
       //jalankan
       assignInput(input);
       feedforward();
       backpropagation(target);
     }
+  }  
+//==============================================================================
+  @Override
+  public double[] distributionForInstance(Instance instance)
+                                 throws java.lang.Exception{
+    return neuralNodeOutput();
   }  
 //==============================================================================
   
