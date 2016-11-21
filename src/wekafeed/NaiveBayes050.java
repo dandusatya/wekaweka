@@ -141,26 +141,26 @@ public class NaiveBayes050 extends AbstractClassifier{
         switch (instance.classAttribute().type()) 
         {
            case Attribute.NOMINAL:
-           double max = 0;
-           int maxIndex = 0;
+            double max = 0;
+            int maxIndex = 0;
 
-           for (int i = 0; i < dist.length; i++) 
-           {
-               if (dist[i] > max) 
-               {
-                   maxIndex = i;
-                   max = dist[i];
-               }
-           }
-           
-           if (max > 0) 
-           {
-               return maxIndex;
-           } 
-           else 
-           {
-                return Double.NaN;
-           }
+            for (int i = 0; i < dist.length; i++) 
+            {
+                if (dist[i] > max) 
+                {
+                    maxIndex = i;
+                    max = dist[i];
+                }
+            }
+
+            if (max > 0) 
+            {
+                return maxIndex;
+            } 
+            else 
+            {
+                 return Double.NaN;
+            }
         case Attribute.NUMERIC:
            return dist[0];
         default:
@@ -178,32 +178,34 @@ public class NaiveBayes050 extends AbstractClassifier{
     }
     Enumeration enumAtts = instance.enumerateAttributes();
     int attIndex = 0;
-    while (enumAtts.hasMoreElements()) {
-      Attribute attribute = (Attribute) enumAtts.nextElement();
-      if (!instance.isMissing(attribute)) {
-	double temp, max = 0;
-	for (int j = 0; j < nclass; j++) {
-	  temp = Math.max(1e-75, Math.pow(distribution[attIndex][j].getProbability((int)instance.value(attribute)),Ins.attribute(attIndex).weight()));
-	  probs[j] *= temp;
-	  if (probs[j] > max) {
-	    max = probs[j];
-	  }
-	  if (Double.isNaN(probs[j])) {
-	    throw new Exception("NaN returned from estimator for attribute "
-                                + attribute.name() + ":\n"
-                                + distribution[attIndex][j].toString());
-	  }
-	}
-	if ((max > 0) && (max < 1e-75)) { // Danger of probability underflow
-	  for (int j = 0; j < nclass; j++) {
-	    probs[j] *= 1e75;
-	  }
-	}
-      }
-      attIndex++;
+    while (enumAtts.hasMoreElements()) 
+    {
+        Attribute attribute = (Attribute) enumAtts.nextElement();
+        if (!instance.isMissing(attribute)) 
+        {
+            double temp, max = 0;
+            for (int j = 0; j < nclass; j++) 
+            {
+                temp = Math.max(1e-75, Math.pow(distribution[attIndex][j].getProbability((int)instance.value(attribute)),Ins.attribute(attIndex).weight()));
+                probs[j] *= temp;
+                if (probs[j] > max) {
+                  max = probs[j];
+                }
+                if (Double.isNaN(probs[j])) 
+                {
+                  throw new Exception("bukan angka woi"+ attribute.name() + ":\n"+ distribution[attIndex][j].toString());
+                }
+            }
+            if ((max > 0) && (max < 1e-75)) 
+            {
+                for (int j = 0; j < nclass; j++) 
+                {
+                  probs[j] *= 1e75;
+                }
+            }
+          }
+        attIndex++;
     }
-
-    // Display probabilities
     Utils.normalize(probs);
     return probs;
   }
